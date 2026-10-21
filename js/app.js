@@ -16,12 +16,437 @@
     isLiveConnected: false,
     sseSource: null,
 
+    currentUser: null,
+    selectedRoleKey: 'principal',
+    USERS_CONFIG: {
+      'principal': {
+        username: 'Principal',
+        pin: '220717',
+        role: 'principal',
+        badge: 'Direksi / Super Admin',
+        color: 'amber',
+        greeting: 'Selamat Datang, Bapak/Ibu Principal! Hak akses penuh manajemen aktif.'
+      },
+      'prospective buyer': {
+        username: 'Prospective Buyer',
+        pin: '1234',
+        role: 'buyer',
+        badge: 'Investor & Mitra Outlet',
+        color: 'sky',
+        greeting: 'Selamat Datang, Calon Investor Snaprint! Mode prospektus investasi aktif.'
+      }
+    },
+
     init() {
+      this.initAuth();
       this.loadData();
       this.bindEvents();
       this.render();
       this.initCharts();
       this.setupLiveSync();
+      this.applyRolePermissions();
+    },
+
+    initAuth() {
+      const stored = localStorage.getItem('SNAPRINT_CURRENT_USER');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.username && (parsed.role === 'principal' || parsed.role === 'buyer')) {
+            this.currentUser = parsed;
+          }
+        } catch (e) {
+          console.error('Error parsing stored user session:', e);
+        }
+      }
+
+      // Sync portal controls on init
+      if (this.currentUser) {
+        this.selectRole(this.currentUser.username, null, false);
+      } else {
+        this.selectRole('Principal', null, false);
+      }
+    },
+
+    selectRole(roleName, defaultPin, focusPin = true) {
+      const key = (roleName || '').toLowerCase().trim();
+      const config = this.USERS_CONFIG[key] || this.USERS_CONFIG['principal'];
+      this.selectedRoleKey = config.role === 'buyer' ? 'prospective buyer' : 'principal';
+
+      // Update username input in portal form
+      const inputUsername = document.getElementById('input-username');
+      if (inputUsername) inputUsername.value = config.username;
+
+      // Update active badge in auth box
+      const activeBadge = document.getElementById('active-badge');
+      if (activeBadge) {
+        activeBadge.innerText = config.username;
+        if (config.color === 'amber') {
+          activeBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        } else {
+          activeBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30';
+        }
+      }
+
+      // Update card visual active borders & radios
+      const cardPrincipal = document.getElementById('role-card-principal');
+      const cardBuyer = document.getElementById('role-card-buyer');
+      const radioPrincipal = document.getElementById('radio-principal');
+      const radioBuyer = document.getElementById('radio-buyer');
+
+      if (config.role === 'principal') {
+        if (cardPrincipal) {
+          cardPrincipal.classList.add('border-amber-500', 'ring-2', 'ring-amber-500/20', 'bg-slate-900/90');
+          cardPrincipal.classList.remove('border-slate-700/80');
+        }
+        if (cardBuyer) {
+          cardBuyer.classList.remove('border-sky-500', 'ring-2', 'ring-sky-500/20', 'bg-slate-900/90');
+          cardBuyer.classList.add('border-slate-700/80');
+        }
+        if (radioPrincipal) radioPrincipal.innerHTML = '<div class="w-3 h-3 rounded-full bg-amber-400"></div>';
+        if (radioBuyer) radioBuyer.innerHTML = '';
+      } else {
+        if (cardBuyer) {
+          cardBuyer.classList.add('border-sky-500', 'ring-2', 'ring-sky-500/20', 'bg-slate-900/90');
+          cardBuyer.classList.remove('border-slate-700/80');
+        }
+        if (cardPrincipal) {
+          cardPrincipal.classList.remove('border-amber-500', 'ring-2', 'ring-amber-500/20', 'bg-slate-900/90');
+          cardPrincipal.classList.add('border-slate-700/80');
+        }
+        if (radioBuyer) radioBuyer.innerHTML = '<div class="w-3 h-3 rounded-full bg-sky-400"></div>';
+        if (radioPrincipal) radioPrincipal.innerHTML = '';
+      }
+
+      const pinInput = document.getElementById('input-pin');
+      if (pinInput) {
+        pinInput.value = '';
+        if (focusPin) pinInput.focus();
+      }
+
+      // Update quick pin button display
+      const quickPinBtn = document.getElementById('btn-quick-pin');
+      if (quickPinBtn) {
+        if (config.role === 'principal') {
+          quickPinBtn.innerHTML = '<span class="text-amber-400/90 text-[11px] font-semibold flex items-center gap-1 cursor-default"><i class="fa-solid fa-lock text-[10px]"></i> PIN Terproteksi Direksi</span>';
+          quickPinBtn.className = 'text-[11px] text-amber-400/90 font-semibold no-underline';
+        } else {
+          quickPinBtn.innerHTML = 'Isi PIN Otomatis (1234)';
+          quickPinBtn.className = 'text-[11px] text-sky-400 hover:text-sky-300 font-semibold underline underline-offset-2';
+        }
+      }
+
+      this.hidePortalError();
+    },
+
+    toggleRoleSwitch() {
+      if (this.selectedRoleKey === 'principal') {
+        this.selectRole('Prospective Buyer');
+      } else {
+        this.selectRole('Principal');
+      }
+    },
+
+    autoFillCurrentPin() {
+      if (this.selectedRoleKey === 'principal') {
+        this.showPortalError('PIN Principal bersifat rahasia dan tidak dimunculkan di portal. Silakan ketik PIN resmi Direksi.');
+        return;
+      }
+      const config = this.USERS_CONFIG[this.selectedRoleKey];
+      if (config) {
+        const pinInput = document.getElementById('input-pin');
+        if (pinInput) {
+          pinInput.value = config.pin;
+          pinInput.focus();
+        }
+        this.hidePortalError();
+      }
+    },
+
+    togglePinVisibility() {
+      const pinInput = document.getElementById('input-pin');
+      const eyeIcon = document.getElementById('eye-icon');
+      if (!pinInput || !eyeIcon) return;
+
+      if (pinInput.type === 'password') {
+        pinInput.type = 'text';
+        eyeIcon.className = 'fa-solid fa-eye-slash text-xs text-sky-400';
+      } else {
+        pinInput.type = 'password';
+        eyeIcon.className = 'fa-solid fa-eye text-xs text-slate-400';
+      }
+    },
+
+    pressKeypad(num) {
+      const pinInput = document.getElementById('input-pin');
+      if (!pinInput) return;
+      if (pinInput.value.length < 10) {
+        pinInput.value += num;
+      }
+      this.hidePortalError();
+    },
+
+    clearKeypad() {
+      const pinInput = document.getElementById('input-pin');
+      if (pinInput) {
+        pinInput.value = '';
+        pinInput.focus();
+      }
+      this.hidePortalError();
+    },
+
+    backspaceKeypad() {
+      const pinInput = document.getElementById('input-pin');
+      if (pinInput && pinInput.value.length > 0) {
+        pinInput.value = pinInput.value.slice(0, -1);
+      }
+      this.hidePortalError();
+    },
+
+    showPortalError(msg) {
+      const errorDiv = document.getElementById('error-message');
+      const errorText = document.getElementById('error-text');
+      const pinInput = document.getElementById('input-pin');
+
+      if (errorText) errorText.innerText = msg;
+      if (errorDiv) {
+        errorDiv.classList.remove('hidden');
+        errorDiv.classList.remove('animate-shake');
+        void errorDiv.offsetWidth;
+        errorDiv.classList.add('animate-shake');
+      }
+      if (pinInput) {
+        pinInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-500/40');
+      }
+    },
+
+    hidePortalError() {
+      const errorDiv = document.getElementById('error-message');
+      const pinInput = document.getElementById('input-pin');
+      if (errorDiv) errorDiv.classList.add('hidden');
+      if (pinInput) {
+        pinInput.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500/40');
+      }
+    },
+
+    handlePortalLogin(e) {
+      if (e) e.preventDefault();
+
+      const usernameInput = document.getElementById('input-username');
+      const pinInput = document.getElementById('input-pin');
+      const submitBtn = document.getElementById('btn-login-submit');
+      const submitText = document.getElementById('btn-login-text');
+
+      const rawUser = usernameInput ? usernameInput.value.trim().toLowerCase() : this.selectedRoleKey;
+      const enteredPin = pinInput ? pinInput.value.trim() : '';
+
+      const userConfig = this.USERS_CONFIG[rawUser];
+
+      if (!userConfig) {
+        this.showPortalError('Profil pengguna tidak valid.');
+        return;
+      }
+
+      if (!enteredPin) {
+        this.showPortalError('Silakan masukkan PIN otentikasi.');
+        if (pinInput) pinInput.focus();
+        return;
+      }
+
+      if (enteredPin !== userConfig.pin) {
+        this.showPortalError(`PIN salah untuk username "${userConfig.username}". Silakan coba lagi.`);
+        if (pinInput) pinInput.select();
+        return;
+      }
+
+      // Success
+      this.hidePortalError();
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('from-sky-500', 'to-emerald-500');
+        submitBtn.classList.add('from-emerald-600', 'to-emerald-500');
+      }
+      if (submitText) {
+        submitText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Membuka Portal...';
+      }
+
+      this.currentUser = {
+        username: userConfig.username,
+        role: userConfig.role,
+        badge: userConfig.badge,
+        color: userConfig.color,
+        loginTime: new Date().toISOString()
+      };
+
+      localStorage.setItem('SNAPRINT_CURRENT_USER', JSON.stringify(this.currentUser));
+
+      setTimeout(() => {
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.innerText = 'Masuk ke Portal Sistem';
+        this.applyRolePermissions();
+        this.switchTab('rab-capex');
+        this.render();
+        this.updateCharts();
+        this.showToast(`Selamat datang ${this.currentUser.username}! Akses ${this.currentUser.badge} aktif. Dialihkan ke Halaman 2: RAB Outlet & Modal.`, 'success');
+      }, 400);
+    },
+
+    logout() {
+      this.currentUser = null;
+      localStorage.removeItem('SNAPRINT_CURRENT_USER');
+      this.applyRolePermissions();
+      this.selectRole('Principal', null, true);
+      this.showToast('Anda telah keluar dari portal sistem', 'info');
+    },
+
+    switchUserModal() {
+      const portalOverlay = document.getElementById('portal-landing-page');
+      if (portalOverlay) {
+        portalOverlay.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      }
+      const skipBtn = document.getElementById('btn-portal-skip');
+      if (skipBtn && this.currentUser) {
+        skipBtn.classList.remove('hidden');
+      }
+    },
+
+    closePortalOverlay() {
+      if (!this.currentUser) return;
+      const portalOverlay = document.getElementById('portal-landing-page');
+      if (portalOverlay) {
+        portalOverlay.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+    },
+
+    isPrincipal() {
+      return !!(this.currentUser && this.currentUser.role === 'principal');
+    },
+
+    applyRolePermissions() {
+      const isPrincipal = this.isPrincipal();
+      const isBuyer = !isPrincipal;
+
+      // 1. Investor Banner in Dashboard
+      const investorBanner = document.getElementById('investor-welcome-banner');
+      if (investorBanner) {
+        if (isBuyer) {
+          investorBanner.classList.remove('hidden');
+        } else {
+          investorBanner.classList.add('hidden');
+        }
+      }
+
+      // 2. Hide or Show Save buttons & Admin buttons (Principal only)
+      const saveBtn = document.getElementById('btn-save-changes');
+      if (saveBtn) {
+        saveBtn.style.display = isPrincipal ? 'inline-flex' : 'none';
+      }
+
+      const capexSaveBtn = document.querySelector('#tab-rab-capex button[onclick*="handleManualSave"]');
+      if (capexSaveBtn) {
+        capexSaveBtn.style.display = isPrincipal ? 'inline-flex' : 'none';
+      }
+
+      const addItemBtn = document.getElementById('btn-open-add-item');
+      if (addItemBtn) {
+        addItemBtn.style.display = isPrincipal ? 'inline-flex' : 'none';
+      }
+
+      const resetDataBtn = document.getElementById('btn-reset-data');
+      if (resetDataBtn) {
+        resetDataBtn.style.display = isPrincipal ? 'flex' : 'none';
+      }
+
+      const importJsonBtn = document.getElementById('btn-import-json');
+      if (importJsonBtn) {
+        importJsonBtn.style.display = isPrincipal ? 'flex' : 'none';
+      }
+
+      const dbInspectorHeaderBtns = document.querySelectorAll('header button[onclick*="openDatabaseInspector"]');
+      dbInspectorHeaderBtns.forEach(btn => {
+        btn.style.display = isPrincipal ? 'inline-flex' : 'none';
+      });
+
+      const dbInspectorDropdown = document.querySelector('.group button[onclick*="openDatabaseInspector"]');
+      if (dbInspectorDropdown) {
+        dbInspectorDropdown.style.display = isPrincipal ? 'flex' : 'none';
+      }
+
+      // 3. Global Discount Controls in RAB (Principal only)
+      const discType = document.getElementById('rab-global-disc-type');
+      const discVal = document.getElementById('rab-global-disc-val');
+      const discApplyBtn = document.querySelector('#tab-rab-capex button[onclick*="applyGlobalDiscount"]');
+      const discResetBtn = document.querySelector('#tab-rab-capex button[onclick*="resetGlobalDiscount"]');
+      if (discType) discType.disabled = !isPrincipal;
+      if (discVal) discVal.disabled = !isPrincipal;
+      if (discApplyBtn) discApplyBtn.style.display = isPrincipal ? 'inline-block' : 'none';
+      if (discResetBtn) discResetBtn.style.display = isPrincipal ? 'inline-block' : 'none';
+
+      // 4. Working Capital Inputs (Principal only)
+      const wcRentCost = document.getElementById('wc-rent-cost');
+      const wcRentDep = document.getElementById('wc-rent-deposit');
+      const wcRunway = document.getElementById('wc-runway-months');
+      const wcPetty = document.getElementById('wc-petty-cash');
+      if (wcRentCost) wcRentCost.disabled = !isPrincipal;
+      if (wcRentDep) wcRentDep.disabled = !isPrincipal;
+      if (wcRunway) wcRunway.disabled = !isPrincipal;
+      if (wcPetty) wcPetty.disabled = !isPrincipal;
+
+      // 5. Draft MoU Editor Form & Buttons in Halaman 3 (Principal only)
+      const mouEditorBtn = document.getElementById('btn-toggle-mou-editor');
+      if (mouEditorBtn) {
+        mouEditorBtn.style.display = isPrincipal ? 'inline-flex' : 'none';
+      }
+      const mouEditorCard = document.getElementById('mou-editor-card');
+      if (mouEditorCard && !isPrincipal) {
+        mouEditorCard.classList.add('hidden');
+      }
+
+      // 6. Update User Header Profile badge
+      const nameDisp = document.getElementById('user-name-display');
+      const avatarIcon = document.getElementById('user-avatar-icon');
+      const avatarBadge = document.getElementById('user-avatar-badge');
+      const dropdownName = document.getElementById('user-dropdown-name');
+      const dropdownRole = document.getElementById('user-dropdown-role');
+
+      if (this.currentUser) {
+        if (nameDisp) nameDisp.innerText = this.currentUser.username;
+        if (dropdownName) dropdownName.innerText = this.currentUser.username;
+        if (dropdownRole) dropdownRole.innerText = this.currentUser.badge;
+
+        if (this.currentUser.role === 'buyer') {
+          if (avatarBadge) avatarBadge.className = 'w-5 h-5 rounded-md bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px]';
+          if (avatarIcon) avatarIcon.className = 'fa-solid fa-briefcase text-sky-400';
+          if (dropdownRole) dropdownRole.className = 'text-[11px] text-sky-400 font-semibold';
+        } else {
+          if (avatarBadge) avatarBadge.className = 'w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px]';
+          if (avatarIcon) avatarIcon.className = 'fa-solid fa-crown text-amber-400';
+          if (dropdownRole) dropdownRole.className = 'text-[11px] text-amber-400 font-semibold';
+        }
+      }
+
+      // 4. Update Portal Overlay visibility
+      const portalOverlay = document.getElementById('portal-landing-page');
+      if (portalOverlay) {
+        if (!this.currentUser) {
+          portalOverlay.classList.remove('hidden');
+          document.body.classList.add('overflow-hidden');
+        } else {
+          portalOverlay.classList.add('hidden');
+          document.body.classList.remove('overflow-hidden');
+        }
+      }
+
+      const skipBtn = document.getElementById('btn-portal-skip');
+      if (skipBtn) {
+        if (this.currentUser) {
+          skipBtn.classList.remove('hidden');
+        } else {
+          skipBtn.classList.add('hidden');
+        }
+      }
     },
 
     loadData() {
@@ -77,10 +502,14 @@
         this.data.simulation.targetPaybackMonths = 18;
       }
 
-      // 4. If running on HTTP/HTTPS server, fetch live data/database.json from server API
+      // 4. If running on HTTP/HTTPS server, fetch live database from server API (MariaDB SQL)
       if (window.location.protocol.startsWith('http')) {
         fetch('/api/database')
           .then(res => {
+            const engine = res.headers.get('X-Database-Engine') || '';
+            if (engine.includes('MariaDB')) {
+              this.dbEngine = 'MariaDB 10.4';
+            }
             if (res.ok) return res.json();
             throw new Error('Server returned ' + res.status);
           })
@@ -88,7 +517,8 @@
             if (serverDb && serverDb.categories) {
               this.data = serverDb;
               this.isLiveConnected = true;
-              this.updateLiveBadge(true, 'LIVE: data/database.json');
+              const badgeText = this.dbEngine ? `LIVE: ${this.dbEngine} (3306)` : 'LIVE: MariaDB (3306)';
+              this.updateLiveBadge(true, badgeText);
               this.render();
               this.updateCharts();
               console.log('Live database fetched from /api/database');
@@ -241,6 +671,8 @@
         this.updateCharts();
       } else if (tabId === 'dokumen-cetak') {
         this.renderPrintDocument();
+      } else if (tabId === 'draft-mou') {
+        this.renderMouTab();
       }
     },
 
@@ -333,6 +765,10 @@
     },
 
     handleManualSave() {
+      if (!this.isPrincipal()) {
+        this.showToast('Akses Ditolak: Hanya Principal yang memiliki hak simpan database.', 'warning');
+        return;
+      }
       const saveBtn = document.getElementById('btn-save-changes');
       const saveText = document.getElementById('btn-save-text');
       const saveIcon = saveBtn ? saveBtn.querySelector('i') : null;
@@ -526,6 +962,8 @@
       this.renderCashflowTermin();
       this.renderSimulationOutputs();
       this.renderPrintDocument();
+      this.renderMouTab();
+      this.applyRolePermissions();
     },
 
     renderMetadataHeader() {
@@ -696,6 +1134,32 @@
             statusBadge = '<span class="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600 rounded-full">Belum Direalisasi</span>';
           }
 
+          const isPrincipal = this.isPrincipal();
+          const isBuyer = !isPrincipal;
+
+          const statusControl = isBuyer ? statusBadge : `
+            <select class="item-status-select text-xs rounded border-slate-300 bg-white py-1 px-1.5 focus:ring-sky-500 focus:border-sky-500" data-cat-id="${cat.id}" data-item-id="${item.id}">
+              <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>Menunggu</option>
+              <option value="in_progress" ${item.status === 'in_progress' ? 'selected' : ''}>Proses DP</option>
+              <option value="purchased" ${item.status === 'purchased' ? 'selected' : ''}>Lunas/Selesai</option>
+            </select>
+          `;
+
+          const actionControl = isBuyer ? `
+            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <i class="fa-solid fa-check text-emerald-500"></i> Terverifikasi
+            </span>
+          ` : `
+            <div class="flex items-center justify-center gap-1.5">
+              <button class="btn-edit-item p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded" title="Edit Item" data-cat-id="${cat.id}" data-item-id="${item.id}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              </button>
+              <button class="btn-delete-item p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded" title="Hapus Item" data-cat-id="${cat.id}" data-item-id="${item.id}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+          `;
+
           html += `
             <tr class="hover:bg-slate-50/80 border-b border-slate-200 transition-colors">
               <td class="py-3 px-3 text-center text-xs font-mono font-medium text-slate-500">${item.code}</td>
@@ -718,21 +1182,10 @@
                 ${Calculations.formatRupiah(itemNet)}
               </td>
               <td class="py-3 px-3 text-center">
-                <select class="item-status-select text-xs rounded border-slate-300 bg-white py-1 px-1.5 focus:ring-sky-500 focus:border-sky-500" data-cat-id="${cat.id}" data-item-id="${item.id}">
-                  <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>Menunggu</option>
-                  <option value="in_progress" ${item.status === 'in_progress' ? 'selected' : ''}>Proses DP</option>
-                  <option value="purchased" ${item.status === 'purchased' ? 'selected' : ''}>Lunas/Selesai</option>
-                </select>
+                ${statusControl}
               </td>
               <td class="py-3 px-3 text-center whitespace-nowrap">
-                <div class="flex items-center justify-center gap-1.5">
-                  <button class="btn-edit-item p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded" title="Edit Item" data-cat-id="${cat.id}" data-item-id="${item.id}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                  </button>
-                  <button class="btn-delete-item p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded" title="Hapus Item" data-cat-id="${cat.id}" data-item-id="${item.id}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                  </button>
-                </div>
+                ${actionControl}
               </td>
             </tr>
           `;
@@ -844,10 +1297,18 @@
             <tr class="border-b border-slate-200 hover:bg-slate-50">
               <td class="py-2.5 px-3 font-medium text-slate-800">${s.position}</td>
               <td class="py-2.5 px-3 text-center">
-                <input type="number" min="1" max="10" class="w-16 text-center border rounded py-1 px-1.5 text-xs font-mono staff-count-input" data-id="${s.id}" value="${s.count}">
+                ${this.isPrincipal() ? `
+                  <input type="number" min="1" max="10" class="w-16 text-center border rounded py-1 px-1.5 text-xs font-mono staff-count-input" data-id="${s.id}" value="${s.count}">
+                ` : `
+                  <span class="font-mono text-xs font-bold text-slate-700">${s.count} Orang</span>
+                `}
               </td>
               <td class="py-2.5 px-3 text-right">
-                <input type="number" step="50000" min="0" class="w-32 text-right border rounded py-1 px-1.5 text-xs font-mono staff-salary-input" data-id="${s.id}" value="${s.salaryPerMonth}">
+                ${this.isPrincipal() ? `
+                  <input type="number" step="50000" min="0" class="w-32 text-right border rounded py-1 px-1.5 text-xs font-mono staff-salary-input" data-id="${s.id}" value="${s.salaryPerMonth}">
+                ` : `
+                  <span class="font-mono text-xs font-bold text-slate-700">${Calculations.formatRupiah(s.salaryPerMonth)}</span>
+                `}
               </td>
               <td class="py-2.5 px-3 text-right font-mono text-xs font-bold text-slate-900">
                 ${Calculations.formatRupiah(subtotalMonth)}
@@ -898,7 +1359,11 @@
             <tr class="border-b border-slate-200 hover:bg-slate-50">
               <td class="py-2.5 px-3 font-medium text-slate-800">${u.name}</td>
               <td class="py-2.5 px-3 text-right">
-                <input type="number" step="50000" min="0" class="w-32 text-right border rounded py-1 px-1.5 text-xs font-mono utl-cost-input" data-id="${u.id}" value="${u.costPerMonth}">
+                ${this.isPrincipal() ? `
+                  <input type="number" step="50000" min="0" class="w-32 text-right border rounded py-1 px-1.5 text-xs font-mono utl-cost-input" data-id="${u.id}" value="${u.costPerMonth}">
+                ` : `
+                  <span class="font-mono text-xs font-bold text-slate-700">${Calculations.formatRupiah(u.costPerMonth)}</span>
+                `}
               </td>
               <td class="py-2.5 px-3 text-right font-mono text-xs font-bold text-sky-700 bg-sky-50/50">
                 ${Calculations.formatRupiah(subtotalRunway)}
@@ -1445,6 +1910,10 @@
     },
 
     openItemModal(catId = null, itemId = null) {
+      if (!this.isPrincipal()) {
+        this.showToast('Akses Ditolak: Hanya Principal (Direksi) yang memiliki hak edit.', 'warning');
+        return;
+      }
       const modal = document.getElementById('item-modal');
       const form = document.getElementById('item-modal-form');
       const title = document.getElementById('item-modal-title');
@@ -1498,6 +1967,10 @@
     },
 
     saveItemFromModal() {
+      if (!this.isPrincipal()) {
+        this.showToast('Akses Ditolak: Hanya Principal (Direksi) yang memiliki hak edit.', 'warning');
+        return;
+      }
       const catId = document.getElementById('modal-item-cat').value;
       const code = document.getElementById('modal-item-code').value.trim();
       const name = document.getElementById('modal-item-name').value.trim();
@@ -1555,6 +2028,10 @@
     },
 
     applyGlobalDiscount() {
+      if (!this.isPrincipal()) {
+        this.showToast('Akses Ditolak: Hanya Principal (Direksi) yang berwenang mengubah diskon.', 'warning');
+        return;
+      }
       const type = document.getElementById('rab-global-disc-type').value;
       const val = parseFloat(document.getElementById('rab-global-disc-val').value) || 0;
 
@@ -1572,6 +2049,10 @@
     },
 
     resetGlobalDiscount() {
+      if (!this.isPrincipal()) {
+        this.showToast('Akses Ditolak: Hanya Principal (Direksi) yang berwenang mereset diskon.', 'warning');
+        return;
+      }
       this.data.discount = {
         enabled: false,
         type: 'nominal',
@@ -1587,6 +2068,10 @@
     },
 
     deleteItem(catId, itemId) {
+      if (!this.isPrincipal()) {
+        this.showToast('Akses Ditolak: Hanya Principal (Direksi) yang memiliki hak edit.', 'warning');
+        return;
+      }
       const cat = this.data.categories.find(c => c.id === catId);
       if (!cat) return;
       const item = cat.items.find(i => i.id === itemId);
@@ -1726,7 +2211,7 @@
 
           <div class="text-[7.5pt] text-slate-400 flex justify-between border-t pt-2 mt-4">
             <span>Snaprint Digital Printing — Rencana Anggaran Biaya & Dokumen Pengadaan</span>
-            <span>Halaman 1 dari 3</span>
+            <span>Halaman 1 dari 5</span>
           </div>
         </div>
 
@@ -1923,7 +2408,7 @@
 
           <div class="text-[7.5pt] text-slate-400 flex justify-between border-t pt-2 mt-4">
             <span>Snaprint Digital Printing — Rencana Anggaran Biaya & Dokumen Pengadaan</span>
-            <span>Halaman 2 dari 3</span>
+            <span>Halaman 2 dari 5</span>
           </div>
         </div>
 
@@ -2037,7 +2522,25 @@
 
           <div class="text-[7.5pt] text-slate-400 flex justify-between border-t pt-2 mt-4">
             <span>Snaprint Digital Printing — Rencana Anggaran Biaya & Dokumen Pengadaan</span>
-            <span>Halaman 3 dari 3</span>
+            <span>Halaman 3 dari 5</span>
+          </div>
+        </div>
+
+        <!-- HALAMAN 4: DRAFT MOU KEMITRAAN (LEMBAR 1 DARI 2) -->
+        <div class="print-page bg-white p-8 mb-8 text-slate-900 border border-slate-200">
+          ${this.generateMouPage1Html(true)}
+          <div class="text-[7.5pt] text-slate-400 flex justify-between border-t pt-2 mt-6">
+            <span>Dokumen Resmi Nota Kesepahaman (MoU) — Snaprint Digital Printing</span>
+            <span>Halaman 4 dari 5</span>
+          </div>
+        </div>
+
+        <!-- HALAMAN 5: DRAFT MOU KEMITRAAN (LEMBAR 2 DARI 2 - BERMATERAI) -->
+        <div class="print-page bg-white p-8 mb-8 text-slate-900 border border-slate-200">
+          ${this.generateMouPage2Html(true)}
+          <div class="text-[7.5pt] text-slate-400 flex justify-between border-t pt-2 mt-6">
+            <span>Dokumen Resmi Nota Kesepahaman (MoU) — Snaprint Digital Printing</span>
+            <span>Halaman 5 dari 5 (Bermaterai Rp 10.000)</span>
           </div>
         </div>
       `;
@@ -2047,6 +2550,388 @@
       if (printOnlyContainer) {
         printOnlyContainer.innerHTML = printHtml;
       }
+    },
+
+
+    /* ========================================================= */
+    /* MODUL DRAFT NOTA KESEPAHAMAN (MoU) KEMITRAAN (HALAMAN 3)  */
+    /* ========================================================= */
+    toggleMouEditor() {
+      if (!this.isPrincipal()) {
+        this.showToast('Akses Ditolak: Hanya Principal yang berwenang mengedit draf klausul MoU.', 'warning');
+        return;
+      }
+      const editor = document.getElementById('mou-editor-card');
+      const btnText = document.getElementById('btn-toggle-mou-editor-text');
+      if (editor) {
+        editor.classList.toggle('hidden');
+        if (btnText) {
+          btnText.innerText = editor.classList.contains('hidden') 
+            ? 'Edit Data Calon Mitra & Lokasi' 
+            : 'Tutup Form Editor Data';
+        }
+      }
+    },
+
+    handleMouInputChange(key, val) {
+      if (!this.isPrincipal()) return;
+      if (!this.data.mou) this.data.mou = JSON.parse(JSON.stringify(window.DEFAULT_RAB_DATA.mou || {}));
+      this.data.mou[key] = val;
+      this.renderMouTab(false);
+      this.saveData(false);
+    },
+
+    handleMouPihak2Change(key, val) {
+      if (!this.isPrincipal()) return;
+      if (!this.data.mou) this.data.mou = JSON.parse(JSON.stringify(window.DEFAULT_RAB_DATA.mou || {}));
+      if (!this.data.mou.pihak2) this.data.mou.pihak2 = {};
+      this.data.mou.pihak2[key] = val;
+      this.renderMouTab(false);
+      this.saveData(false);
+    },
+
+    renderMouTab(updateInputs = true) {
+      if (!this.data.mou) {
+        this.data.mou = JSON.parse(JSON.stringify(window.DEFAULT_RAB_DATA.mou || {}));
+      }
+      const mou = this.data.mou;
+
+      if (updateInputs) {
+        const setVal = (id, val) => {
+          const el = document.getElementById(id);
+          if (el && val !== undefined) el.value = val;
+        };
+        setVal('mou-input-nomor', mou.nomor || '');
+        setVal('mou-input-kota', mou.kotaDomisili || 'Jakarta');
+        setVal('mou-input-hari', mou.hari || 'Rabu');
+        setVal('mou-input-tanggal', mou.tanggal || '21');
+        setVal('mou-input-bulan', mou.bulan || 'Oktober');
+        setVal('mou-input-tahun', mou.tahun || '2026');
+        setVal('mou-input-nama', (mou.pihak2 && mou.pihak2.nama) || '');
+        setVal('mou-input-nik', (mou.pihak2 && mou.pihak2.nik) || '');
+        setVal('mou-input-lokasi', mou.lokasiUsaha || '');
+        setVal('mou-input-alamat', (mou.pihak2 && mou.pihak2.alamat) || '');
+      }
+
+      const previewContainer = document.getElementById('mou-preview-container');
+      if (previewContainer) {
+        previewContainer.innerHTML = `
+          <!-- LEMBAR 1 DARI 2 -->
+          <div class="mou-paper p-8 sm:p-12 rounded-2xl border border-slate-200">
+            ${this.generateMouPage1Html(false)}
+            <div class="text-[8pt] text-slate-400 flex justify-between border-t pt-3 mt-8">
+              <span>Halaman 1 dari 2 &bull; Dokumen Nota Kesepahaman (MoU) Snaprint Digital Printing</span>
+              <span>Dokumen No: ${mou.nomor || '______/MoU/SNAPRINT/PRIN-MITRA/2026'}</span>
+            </div>
+          </div>
+
+          <!-- LEMBAR 2 DARI 2 (BERMATERAI) -->
+          <div class="mou-paper p-8 sm:p-12 rounded-2xl border border-slate-200">
+            ${this.generateMouPage2Html(false)}
+            <div class="text-[8pt] text-slate-400 flex justify-between border-t pt-3 mt-8">
+              <span>Halaman 2 dari 2 &bull; Dokumen Nota Kesepahaman (MoU) Snaprint Digital Printing</span>
+              <span class="text-emerald-700 font-semibold">Lampiran Materai Cukup Rp 10.000</span>
+            </div>
+          </div>
+        `;
+      }
+    },
+
+    generateMouPage1Html(isPrint = false) {
+      const mou = this.data.mou || {};
+      const pihak1 = mou.pihak1 || { instansi: 'SNAPRINT DIGITAL PRINTING', penanggungJawab: 'Direktur / Manajemen', alamat: 'Kantor Pusat Snaprint Digital Printing, Jakarta' };
+      const pihak2 = mou.pihak2 || { nama: 'Calon Mitra / Prospective Buyer', nik: '3171000000000000', alamat: 'Sesuai KTP / Tempat Tinggal' };
+
+      return `
+        <!-- Header & Kop Snaprint -->
+        <div class="border-b-2 border-slate-900 pb-4 mb-5 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-white p-1 border border-slate-300 shadow-sm flex items-center justify-center shrink-0">
+              <img src="assets/snaprint-logo.jpg" alt="Snaprint Logo" class="w-full h-full object-contain">
+            </div>
+            <div>
+              <div class="font-black text-xl tracking-tight text-slate-900">SNAPRINT DIGITAL PRINTING</div>
+              <div class="text-[9.5pt] font-bold text-sky-800 tracking-wider uppercase">Jaringan Bisnis Percetakan Digital &amp; Outdoor Advertising</div>
+              <div class="text-[8pt] text-slate-500">${pihak1.alamat}</div>
+            </div>
+          </div>
+          <div class="text-right text-[8.5pt] text-slate-600 leading-tight">
+            <div class="font-bold text-slate-900">NOTA KESEPAHAMAN (MoU)</div>
+            <div class="font-mono text-[8pt] text-sky-700">${mou.nomor || '______/MoU/SNAPRINT/PRIN-MITRA/2026'}</div>
+            <div class="text-[7.5pt] text-emerald-700 font-semibold mt-0.5">Kemitraan Lisensi Brand</div>
+          </div>
+        </div>
+
+        <!-- Judul Dokumen -->
+        <div class="text-center mb-6">
+          <h2 class="text-base sm:text-lg font-black tracking-wide text-slate-900 uppercase">
+            MEMORANDUM OF UNDERSTANDING (MOU)
+          </h2>
+          <div class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            KEMITRAAN USAHA SNAPRINT DIGITAL PRINTING
+          </div>
+          <div class="text-[9pt] font-mono text-slate-600 mt-1">
+            Nomor: <strong>${mou.nomor || '______/MoU/SNAPRINT/PRIN-MITRA/2026'}</strong>
+          </div>
+        </div>
+
+        <!-- Preamble / Pembukaan -->
+        <div class="text-[9pt] leading-relaxed text-slate-800 space-y-3 mb-5 text-justify">
+          <p>
+            Pada hari ini <strong>${mou.hari || 'Rabu'}</strong>, tanggal <strong>${mou.tanggal || '21'}</strong> bulan <strong>${mou.bulan || 'Oktober'}</strong> tahun <strong>${mou.tahun || '2026'}</strong> (${mou.tanggal || '21'}-${mou.bulan || '10'}-${mou.tahun || '2026'}), bertempat di <strong>${mou.kotaDomisili || 'Jakarta'}</strong>, para pihak yang bertanda tangan di bawah ini:
+          </p>
+
+          <div class="pl-4 space-y-2 border-l-2 border-slate-300 py-1">
+            <div class="grid grid-cols-12 gap-1">
+              <span class="col-span-1 font-bold">1.</span>
+              <div class="col-span-11">
+                <strong>${pihak1.instansi}</strong>, berkedudukan di ${pihak1.alamat}, dalam hal ini diwakili oleh <strong>${pihak1.penanggungJawab}</strong> bertindak dalam jabatannya selaku manajemen pengelola brand, selanjutnya disebut sebagai <strong>"PIHAK PERTAMA"</strong>.
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-1 pt-1">
+              <span class="col-span-1 font-bold">2.</span>
+              <div class="col-span-11">
+                <strong>${pihak2.nama}</strong>, pemegang Kartu Tanda Penduduk (KTP) No. <span class="font-mono font-bold">${pihak2.nik}</span>, beralamat di ${pihak2.alamat}, bertindak untuk dan atas nama pribadi, selanjutnya disebut sebagai <strong>"PIHAK KEDUA"</strong>.
+              </div>
+            </div>
+          </div>
+
+          <p>
+            (PIHAK PERTAMA dan PIHAK KEDUA secara bersama-sama disebut sebagai <strong>"PARA PIHAK"</strong>, dan secara sendiri-sendiri disebut sebagai <strong>"PIHAK"</strong>).
+          </p>
+
+          <p class="font-medium text-slate-700">
+            PARA PIHAK terlebih dahulu menerangkan hal-hal sebagai berikut:
+          </p>
+          <ol class="list-none space-y-1.5 pl-4">
+            <li class="flex items-start gap-2">
+              <span class="font-bold">a.</span>
+              <span>Bahwa PIHAK PERTAMA adalah pemilik dan pengelola jaringan bisnis Snaprint Digital Printing yang bergerak dalam bidang percetakan digital, outdoor advertising, dan layanan dokumen profesional.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="font-bold">b.</span>
+              <span>Bahwa PIHAK KEDUA bermaksud menjalin kemitraan usaha (franchise/lisensi) pembukaan gerai baru Snaprint Digital Printing pada lokasi yang disepakati bersama.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="font-bold">c.</span>
+              <span>Bahwa Nota Kesepahaman ini dibuat sebagai landasan kesepakatan prinsip awal sebelum penandatanganan Perjanjian Kerjasama (PKS) Definitif.</span>
+            </li>
+          </ol>
+
+          <p>
+            Maka berlandaskan itikad baik dan asas saling menguntungkan, PARA PIHAK sepakat mengikatkan diri dalam ketentuan-ketentuan sebagai berikut:
+          </p>
+        </div>
+
+        <!-- PASAL 1 -->
+        <div class="mb-4">
+          <div class="mou-article-header text-slate-900">
+            PASAL 1: KETENTUAN UMUM DAN PENETAPAN LOKASI
+          </div>
+          <div class="text-[9pt] leading-relaxed text-slate-800 space-y-2 text-justify pl-3">
+            <p>
+              1. PARA PIHAK sepakat untuk bekerjasama dalam pembukaan dan operasional outlet Snaprint Digital Printing yang berlokasi di: <strong>${mou.lokasiUsaha || 'Ruko Sentra Bisnis Utama (Target Titik Gerai Snaprint)'}</strong>.
+            </p>
+            <p>
+              2. Segala bentuk pekerjaan renovasi, instalasi kelistrikan/utilitas, dan penataan interior gerai dimulai setelah PIHAK KEDUA menyelesaikan seluruh kewajiban pembayaran pelunasan sewa lokasi usaha tersebut kepada pihak pemilik tempat.
+            </p>
+          </div>
+        </div>
+
+        <!-- PASAL 2 -->
+        <div class="mb-2">
+          <div class="mou-article-header text-slate-900">
+            PASAL 2: KEWAJIBAN PIHAK PERTAMA
+          </div>
+          <div class="text-[9pt] leading-relaxed text-slate-800 space-y-2 text-justify pl-3">
+            <p>
+              PIHAK PERTAMA berkewajiban untuk memberikan dukungan persiapan, standardisasi gerai, dan pendampingan teknis kepada PIHAK KEDUA yang meliputi:
+            </p>
+            <ol class="space-y-1.5 pl-4 list-decimal">
+              <li>
+                <strong>Sistem Terintegrasi</strong>: Menyediakan hak akses sistem kasir terpadu (POS &amp; ERP Cloud Snaprint) untuk pencatatan transaksi kasir, inventori bahan baku cetak, dan monitoring laporan omset harian.
+              </li>
+              <li>
+                <strong>Pelatihan SDM</strong>: Menyelenggarakan program pelatihan (training) operasional dan teknis bagi karyawan/operator gerai PIHAK KEDUA sebelum peresmian pembukaan (Grand Opening).
+              </li>
+              <li>
+                <strong>Setup Fisik Gerai</strong>: Merancang dan melaksanakan penataan layout toko (fit-out), pemasangan signage neon box eksterior, backdrop kasir, dan penataan area kerja produksi sesuai standar brand Snaprint.
+              </li>
+              <li>
+                <strong>Infrastruktur Jaringan &amp; Utilitas</strong>: Melakukan instalasi kabel jaringan LAN berkecepatan tinggi, setup kelistrikan khusus mesin digital printing, dan grounding pengaman mesin.
+              </li>
+              <li>
+                <strong>Peralatan Pendukung</strong>: Menyediakan daftar spesifikasi dan pengadaan sarana kerja, komputer desain grafis, meja produksi, serta alat finishing pendukung.
+              </li>
+              <li>
+                <strong>Supervisi Operasional</strong>: Melakukan pendampingan dan supervisi berkala pada fase persiapan maupun saat pembukaan gerai guna menjamin standar operasional prosedur (SOP) berjalan optimal.
+              </li>
+              <li>
+                <strong>Konsultasi Pengadaan Mesin</strong>: Memberikan rekomendasi, konsultasi teknis, dan mediasi pengadaan unit mesin produksi utama (mesin digital laser A3+ dan mesin outdoor) dari vendor terpercaya dengan garansi purna jual resmi.
+              </li>
+            </ol>
+          </div>
+        </div>
+      `;
+    },
+
+    generateMouPage2Html(isPrint = false) {
+      const mou = this.data.mou || {};
+      const pihak1 = mou.pihak1 || { instansi: 'SNAPRINT DIGITAL PRINTING', penanggungJawab: 'Direktur / Manajemen', alamat: 'Kantor Pusat Snaprint Digital Printing, Jakarta' };
+      const pihak2 = mou.pihak2 || { nama: 'Calon Mitra / Prospective Buyer', nik: '3171000000000000', alamat: 'Sesuai KTP / Tempat Tinggal' };
+      const tahap = mou.tahapPembayaran || [
+        { tahap: 'Tahap 1', persentase: '50%', keterangan: 'Dibayarkan pasca pelunasan sewa lokasi saat penandatanganan dan dimulainya pekerjaan setup.' },
+        { tahap: 'Tahap 2', persentase: '40%', keterangan: 'Dibayarkan saat progres renovasi, penataan interior/eksterior, dan pengadaan sarana mencapai tahap pertengahan.' },
+        { tahap: 'Tahap 3', persentase: '10%', keterangan: 'Pelunasan akhir yang dibayarkan ketika seluruh toko selesai disetup dan siap beroperasi penuh.' }
+      ];
+
+      return `
+        <!-- Header Halaman 2 -->
+        <div class="border-b border-slate-400 pb-2 mb-4 flex justify-between items-center text-[8pt] text-slate-600">
+          <div class="flex items-center gap-2 font-bold text-slate-800">
+            <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+            <span>SNAPRINT DIGITAL PRINTING &bull; DRAFT NOTA KESEPAHAMAN (MoU) KEMITRAAN</span>
+          </div>
+          <div>No. Dokumen: ${mou.nomor || '______/MoU/SNAPRINT/PRIN-MITRA/2026'}</div>
+        </div>
+
+        <!-- PASAL 3 -->
+        <div class="mb-4">
+          <div class="mou-article-header text-slate-900">
+            PASAL 3: KEWAJIBAN PIHAK KEDUA
+          </div>
+          <div class="text-[9pt] leading-relaxed text-slate-800 space-y-2.5 text-justify pl-3">
+            <p>
+              PIHAK KEDUA berkewajiban untuk memenuhi persyaratan finansial dan administratif kemitraan kepada PIHAK PERTAMA yang mencakup:
+            </p>
+            <ol class="space-y-2 pl-4 list-decimal">
+              <li>
+                <strong>Pelunasan Sewa Lokasi</strong>: Menyelesaikan pembayaran sewa tempat/ruko usaha secara penuh kepada pemilik gedung sebelum tahapan pekerjaan renovasi fisik dimulai.
+              </li>
+              <li>
+                <strong>Tahapan Pembayaran Investasi (CAPEX)</strong>: Melakukan pembayaran dana pengadaan dan fit-out outlet kepada PIHAK PERTAMA yang terbagi ke dalam 3 (tiga) tahapan berjenjang:
+                <div class="overflow-hidden rounded border border-slate-300 mt-2 mb-2">
+                  <table class="w-full text-left text-[8pt] border-collapse">
+                    <thead>
+                      <tr class="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
+                        <th class="p-1.5 border-r border-slate-300 w-24 text-center">Tahapan</th>
+                        <th class="p-1.5 border-r border-slate-300 w-24 text-center">Persentase</th>
+                        <th class="p-1.5">Keterangan &amp; Syarat Pembayaran</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                      ${tahap.map(t => `
+                        <tr>
+                          <td class="p-1.5 border-r border-slate-300 font-bold text-center bg-slate-50">${t.tahap}</td>
+                          <td class="p-1.5 border-r border-slate-300 font-bold text-center text-sky-900 font-mono">${t.persentase}</td>
+                          <td class="p-1.5 text-slate-700">${t.keterangan}</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </li>
+              <li>
+                <strong>Biaya Kemitraan (Initial Fee)</strong>: Membayar Initial Franchise Fee sebesar <strong>${Calculations.formatRupiah(mou.initialFeeNominal || 100000000)} (${mou.initialFeeTerbilang || 'seratus juta rupiah'})</strong> sebagai hak lisensi penggunaan merek dagang Snaprint Digital Printing dan sistem kemitraan. Kebijakan Diskon: <span class="font-bold text-emerald-800">${mou.kebijakanDiskon || 'Tidak Ada'}</span>.
+              </li>
+              <li>
+                <strong>Biaya Manajemen (Management Fee)</strong>: Membayar Management/Royalty Fee sebesar <strong>${mou.managementFeePercent || 5}% (${mou.managementFeePercent === 5 ? 'lima persen' : (mou.managementFeePercent + '%')})</strong> dari Total Pendapatan Kotor (Gross Revenue) bulanan yang mulai berlaku efektif pada <strong>bulan ke-${mou.managementFeeBulanMulai || 4} (${mou.managementFeeBulanMulai === 4 ? 'keempat' : mou.managementFeeBulanMulai})</strong> operasional gerai, dibayarkan selambat-lambatnya tanggal <strong>${mou.managementFeeBatasTgl || 5} (${mou.managementFeeBatasTgl === 5 ? 'lima' : mou.managementFeeBatasTgl})</strong> setiap bulannya.
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- PASAL 4 -->
+        <div class="mb-4">
+          <div class="mou-article-header text-slate-900">
+            PASAL 4: JANGKA WAKTU DAN PERJANJIAN DEFINITIF
+          </div>
+          <div class="text-[9pt] leading-relaxed text-slate-800 space-y-2 text-justify pl-3">
+            <p>
+              1. Nota Kesepahaman ini berlaku efektif sejak tanggal ditandatangani oleh PARA PIHAK hingga ditandatanganinya Perjanjian Kerjasama (PKS) Definitif Kemitraan Snaprint Digital Printing.
+            </p>
+            <p>
+              2. Ketentuan-ketentuan teknis operasional, standardisasi mutu, hak lisensi, pembagian dividen, dan sanksi yang belum diatur secara terperinci dalam Nota Kesepahaman ini akan dituangkan secara mengikat dalam dokumen PKS Definitif.
+            </p>
+          </div>
+        </div>
+
+        <!-- Penutup Resmi -->
+        <div class="text-[9pt] leading-relaxed text-slate-800 mb-6 text-justify">
+          <p>
+            Demikian Nota Kesepahaman ini dibuat dan ditandatangani oleh PARA PIHAK dalam rangkap 2 (dua) asli bermaterai cukup, masing-masing memiliki kekuatan hukum yang sama bagi PARA PIHAK.
+          </p>
+        </div>
+
+        <!-- KOLOM TANDA TANGAN BERMATERAI -->
+        <div class="grid grid-cols-2 gap-8 text-center pt-2 text-[9pt]">
+          <!-- Pihak Pertama -->
+          <div class="flex flex-col items-center">
+            <div class="font-bold text-slate-900">PIHAK PERTAMA</div>
+            <div class="font-black text-slate-900 uppercase tracking-wide">${pihak1.instansi}</div>
+            
+            <div class="materai-box my-4 flex flex-col items-center justify-center border-dashed border-2 border-slate-400 rounded-lg p-2 bg-slate-50 text-slate-500 shadow-inner">
+              <span class="font-bold text-[8.5pt] uppercase tracking-wider text-slate-600">MATERAI</span>
+              <span class="text-[7.5pt] font-semibold">TEMPEL</span>
+              <span class="font-mono text-[7.5pt] font-bold text-slate-700">Rp 10.000</span>
+            </div>
+
+            <div class="font-black text-slate-900 underline underline-offset-4">${pihak1.penanggungJawab}</div>
+            <div class="text-[8pt] text-slate-500 mt-0.5">Pemberi Lisensi Brand Snaprint</div>
+          </div>
+
+          <!-- Pihak Kedua -->
+          <div class="flex flex-col items-center">
+            <div class="font-bold text-slate-900">PIHAK KEDUA</div>
+            <div class="font-black text-slate-900 uppercase tracking-wide">CALON MITRA INVESTOR</div>
+
+            <div class="materai-box my-4 flex flex-col items-center justify-center border-dashed border-2 border-slate-400 rounded-lg p-2 bg-slate-50 text-slate-500 shadow-inner">
+              <span class="font-bold text-[8.5pt] uppercase tracking-wider text-slate-600">MATERAI</span>
+              <span class="text-[7.5pt] font-semibold">TEMPEL</span>
+              <span class="font-mono text-[7.5pt] font-bold text-slate-700">Rp 10.000</span>
+            </div>
+
+            <div class="font-black text-slate-900 underline underline-offset-4">${pihak2.nama}</div>
+            <div class="text-[8pt] text-slate-500 mt-0.5">Penerima Lisensi / Pengelola Gerai</div>
+          </div>
+        </div>
+      `;
+    },
+
+    printMouOnly() {
+      const printOnlyContainer = document.getElementById('print-document-container');
+      if (!printOnlyContainer) return;
+
+      const mouHtml = `
+        <!-- HALAMAN 1 DARI 2 (A4 LEGAL) -->
+        <div class="print-page bg-white p-8 mb-8 text-slate-900 border border-slate-200" style="min-height: 297mm;">
+          ${this.generateMouPage1Html(true)}
+          <div class="text-[7.5pt] text-slate-400 flex justify-between border-t pt-2 mt-6">
+            <span>Dokumen Resmi Nota Kesepahaman (MoU) — Snaprint Digital Printing</span>
+            <span>Halaman 1 dari 2</span>
+          </div>
+        </div>
+
+        <div style="page-break-before: always;"></div>
+
+        <!-- HALAMAN 2 DARI 2 (BERMATERAI) -->
+        <div class="print-page bg-white p-8 mb-8 text-slate-900 border border-slate-200" style="min-height: 297mm;">
+          ${this.generateMouPage2Html(true)}
+          <div class="text-[7.5pt] text-slate-400 flex justify-between border-t pt-2 mt-6">
+            <span>Dokumen Resmi Nota Kesepahaman (MoU) — Snaprint Digital Printing</span>
+            <span>Halaman 2 dari 2 (Bermaterai Rp 10.000)</span>
+          </div>
+        </div>
+      `;
+
+      printOnlyContainer.innerHTML = mouHtml;
+      window.print();
+
+      // Restore full 5-page print document on finish
+      setTimeout(() => {
+        this.renderPrintDocument();
+      }, 1000);
     },
 
     exportToCsv() {
@@ -2162,6 +3047,10 @@
     inspectorActiveTab: 'json',
 
     openDatabaseInspector() {
+      if (!this.isPrincipal()) {
+        this.showToast('Akses Ditolak: Inspektur database hanya dapat diakses oleh Principal (Direksi).', 'warning');
+        return;
+      }
       const modal = document.getElementById('database-inspector-modal');
       const statusEl = document.getElementById('db-inspector-status');
       const timeEl = document.getElementById('db-inspector-last-update');

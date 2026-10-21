@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Pengguna - Snaprint Digital Printing</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            snaprint: {
+              navy: '#0f172a',
+              blue: '#0284c7',
+              cyan: '#06b6d4',
+              accent: '#10b981',
+              warning: '#f59e0b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="portal-bg-pattern text-slate-100 min-h-screen flex flex-col justify-between antialiased selection:bg-sky-500 selection:text-white">
+
+  <!-- TOP HEADER -->
+  <header class="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Brand Logo -->
+      <a href="portal.html" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-white p-0.5 flex items-center justify-center shadow-lg ring-2 ring-sky-400/30 group-hover:scale-105 transition-transform overflow-hidden">
+          <img src="assets/snaprint-logo.jpg" alt="Snaprint Logo" class="w-full h-full object-contain">
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight text-white">SNAPRINT</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 font-bold border border-sky-500/30">Digital Printing</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Portal Akses Pengguna &amp; Evaluasi Investasi</p>
+        </div>
+      </a>
+
+      <!-- Document Reference & Live Info -->
+      <div class="flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs text-slate-300 font-mono">
+          <i class="fa-solid fa-file-contract text-sky-400"></i>
+          <span>No. Dok: <strong class="text-white">RAB-SNP/2026/04-01</strong></span>
+        </div>
+
+        <a href="index.html" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors" title="Langsung ke dashboard jika sudah login">
+          <i class="fa-solid fa-gauge-high text-sky-400"></i>
+          <span class="hidden sm:inline">Buka Sistem</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN HERO & PORTAL LOGIN SECTION -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex flex-col justify-center">
+
+    <!-- CENTERED LOGO & PROSPECTUS FRANCHISE -->
+    <div class="flex flex-col items-center justify-center text-center mx-auto mb-10 space-y-5">
+      <!-- Logo Snaprint Agak Besar di Tengah dengan Kesan Mewah -->
+      <div class="relative group">
+        <!-- Multi-layer Luxury Ambient Glow -->
+        <div class="absolute -inset-3 bg-gradient-to-tr from-blue-600 via-sky-400 to-amber-300 rounded-[2.5rem] blur-2xl opacity-45 group-hover:opacity-75 transition-all duration-700"></div>
+        <div class="absolute -inset-1 bg-gradient-to-r from-amber-400/30 via-sky-400/40 to-amber-400/30 rounded-[2rem] blur-sm opacity-60"></div>
+        
+        <!-- Logo Plinth Frame -->
+        <div class="relative luxury-logo-frame p-4 sm:p-5 rounded-3xl backdrop-blur-xl">
+          <img 
+            src="assets/snaprint-logo.jpg" 
+            alt="Logo Snaprint Digital Printing" 
+            class="w-48 sm:w-56 md:w-64 h-auto object-contain mx-auto rounded-2xl drop-shadow-md"
+          >
+        </div>
+      </div>
+
+      <!-- Tulisan di Bawahnya: PROSPECTUS FRANCHISE & SNAPRINT DIGITAL PRINTING -->
+      <div class="space-y-2 pt-2">
+        <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/80 border border-amber-400/35 shadow-inner">
+          <i class="fa-solid fa-gem text-amber-400 text-xs"></i>
+          <span class="text-xs sm:text-sm font-black uppercase tracking-[0.28em] luxury-gold-text">
+            PROSPECTUS FRANCHISE
+          </span>
+          <i class="fa-solid fa-gem text-amber-400 text-xs"></i>
+        </div>
+
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight luxury-silver-text drop-shadow-lg">
+          SNAPRINT DIGITAL PRINTING
+        </h1>
+
+        <p class="text-xs sm:text-sm text-sky-200/80 max-w-xl mx-auto font-medium">
+          Sistem Dinamis Rencana Anggaran Biaya (RAB) &amp; Perkiraan Modal Awal Outlet Baru &bull; Dokumen No: <span class="font-mono text-amber-300 font-bold">RAB-SNP/2026/04-01</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- PORTAL AUTHENTICATION INTERFACE -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+      <!-- LEFT: ROLE SELECTION CARDS (7 Cols) -->
+      <div class="lg:col-span-7 space-y-4">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-user-tag text-sky-400"></i>
+            <span>Pilih Username:</span>
+          </h2>
+          <span class="text-xs text-sky-400">Otentikasi PIN Mandiri</span>
+        </div>
+
+        <!-- CARD 1: PRINCIPAL -->
+        <div id="role-card-principal" onclick="selectRole('Principal')" class="portal-glass-card rounded-2xl p-6 border-2 border-slate-700/80 hover:border-amber-500/80 transition-all duration-300 cursor-pointer relative overflow-hidden group">
+          <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all"></div>
+          
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xl shadow-lg shadow-amber-900/40 ring-2 ring-amber-400/30">
+                <i class="fa-solid fa-crown"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Username:</span>
+                  <h3 class="font-extrabold text-xl text-white group-hover:text-amber-400 transition-colors">Principal</h3>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
+                    Direksi / Super Admin
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400">Pemilik Bisnis, Manajemen Eksekutif &amp; Tim Proyek</p>
+              </div>
+            </div>
+
+            <!-- Radio indicator -->
+            <div id="radio-principal" class="w-6 h-6 rounded-full border-2 border-slate-600 flex items-center justify-center group-hover:border-amber-400 transition-all">
+              <div class="w-3 h-3 rounded-full bg-amber-400 hidden"></div>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+            Hak akses penuh ke seluruh arsitektur anggaran CAPEX (21 item), manajemen database live (MariaDB &amp; JSON), penyesuaian asumsi finansial, serta approval dokumen PDF resmi.
+          </p>
+
+          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 border-t border-slate-800/80 pt-3">
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <i class="fa-solid fa-crown text-amber-400 text-xs"></i>
+              <span class="font-bold text-amber-300">Hak Akses Edit Penuh (Super Admin)</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+              <span>Edit Anggaran, Harga &amp; Tambah Item</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+              <span>Atur Diskon &amp; Database MariaDB Live</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+              <span>Kustomisasi Draf MoU &amp; Approval PDF</span>
+            </div>
+          </div>
+
+          <!-- PIN Hint & Select Button -->
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-1.5 text-amber-400/90 text-[11px] font-semibold">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>PIN Rahasia Direksi (Akses Terproteksi)</span>
+            </div>
+            <span class="text-sky-400 font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+              Pilih Username Ini <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- CARD 2: PROSPECTIVE BUYER -->
+        <div id="role-card-buyer" onclick="selectRole('Prospective Buyer', '1234')" class="portal-glass-card rounded-2xl p-6 border-2 border-slate-700/80 hover:border-sky-500/80 transition-all duration-300 cursor-pointer relative overflow-hidden group">
+          <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition-all"></div>
+          
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 flex items-center justify-center text-white text-xl shadow-lg shadow-sky-900/40 ring-2 ring-sky-400/30">
+                <i class="fa-solid fa-briefcase"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider">Username:</span>
+                  <h3 class="font-extrabold text-xl text-white group-hover:text-sky-400 transition-colors">Prospective Buyer</h3>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 uppercase tracking-wider">
+                    Investor &amp; Calon Mitra
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400">Calon Pembeli Lisensi / Kemitraan Outlet &amp; Investor</p>
+              </div>
+            </div>
+
+            <!-- Radio indicator -->
+            <div id="radio-buyer" class="w-6 h-6 rounded-full border-2 border-slate-600 flex items-center justify-center group-hover:border-sky-400 transition-all">
+              <div class="w-3 h-3 rounded-full bg-sky-400 hidden"></div>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+            Akses interaktif prospektus bisnis Snaprint. Eksplorasi rincian kebutuhan modal awal Rp 294,4 Juta, 3 skenario modal kerja, serta simulator BEP dinamis untuk menguji proyeksi laba outlet Anda.
+          </p>
+
+          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 border-t border-slate-800/80 pt-3">
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <i class="fa-solid fa-lock text-sky-400 text-xs"></i>
+              <span class="font-bold text-sky-300">Mode Baca Saja (Read-Only)</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+              <span>Telaah Alokasi CAPEX Rp 187 Jt &amp; Modal Awal</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+              <span>Simulator BEP, Omset &amp; Payback Period</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+              <span>Tinjau &amp; Cetak Proposal RAB &amp; Draft MoU</span>
+            </div>
+          </div>
+
+          <!-- PIN Hint & Select Button -->
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-1.5 text-sky-400 font-mono text-[11px]">
+              <i class="fa-solid fa-key"></i>
+              <span>PIN Akses: <strong>1234</strong></span>
+            </div>
+            <span class="text-sky-400 font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+              Pilih Username Ini <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: AUTHENTICATION FORM & KEYPAD (5 Cols) -->
+      <div class="lg:col-span-5">
+        <div id="auth-box" class="portal-glass-card rounded-2xl p-6 sm:p-7 border border-slate-700/80 shadow-2xl space-y-5">
+          
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="font-bold text-base text-white flex items-center gap-2">
+                <i class="fa-solid fa-lock text-sky-400"></i>
+                <span>Masuk ke Portal</span>
+              </h3>
+              <p class="text-[11px] text-slate-400">Masukkan PIN otentikasi username terpilih</p>
+            </div>
+            <div id="active-badge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              Principal
+            </div>
+          </div>
+
+          <!-- Form Fields -->
+          <form id="portal-form" onsubmit="handlePortalLogin(event)" class="space-y-4">
+            
+            <!-- Selected Username Display -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Username:</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs">
+                  <i class="fa-solid fa-user"></i>
+                </span>
+                <input type="text" id="input-username" readonly value="Principal" class="w-full bg-slate-900/90 text-white font-bold text-sm pl-9 pr-24 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <button type="button" onclick="toggleRoleSwitch()" class="absolute inset-y-1 right-1 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold border border-slate-700 transition-colors">
+                  Ganti
+                </button>
+              </div>
+            </div>
+
+            <!-- PIN Input Field -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="input-pin" class="block text-xs font-semibold text-slate-300">
+                  PIN Otentikasi:
+                </label>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" id="btn-quick-pin" onclick="autoFillCurrentPin()" class="text-[11px] text-sky-400 hover:text-sky-300 font-semibold underline underline-offset-2">
+                    Isi PIN Otomatis
+                  </button>
+                </div>
+              </div>
+
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs">
+                  <i class="fa-solid fa-shield-halved"></i>
+                </span>
+                <input 
+                  type="password" 
+                  id="input-pin" 
+                  maxlength="10" 
+                  autocomplete="off"
+                  placeholder="Ketik PIN Anda..." 
+                  class="w-full bg-slate-900/90 text-white font-mono text-center tracking-[0.3em] text-lg pl-9 pr-10 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  required
+                >
+                <button type="button" onclick="togglePinVisibility()" id="btn-toggle-eye" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white transition-colors" title="Lihat/Sembunyikan PIN">
+                  <i class="fa-solid fa-eye text-xs" id="eye-icon"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="error-message" class="hidden rounded-xl p-3 bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs flex items-center gap-2 animate-shake">
+              <i class="fa-solid fa-circle-exclamation text-rose-400 text-sm"></i>
+              <span id="error-text">PIN salah untuk profil yang dipilih.</span>
+            </div>
+
+            <!-- ON-SCREEN NUMERIC KEYPAD -->
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="pressKeypad('1')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">1</button>
+                <button type="button" onclick="pressKeypad('2')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">2</button>
+                <button type="button" onclick="pressKeypad('3')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">3</button>
+                
+                <button type="button" onclick="pressKeypad('4')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">4</button>
+                <button type="button" onclick="pressKeypad('5')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">5</button>
+                <button type="button" onclick="pressKeypad('6')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">6</button>
+                
+                <button type="button" onclick="pressKeypad('7')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">7</button>
+                <button type="button" onclick="pressKeypad('8')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">8</button>
+                <button type="button" onclick="pressKeypad('9')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">9</button>
+                
+                <button type="button" onclick="clearKeypad()" class="keypad-btn py-2.5 rounded-lg bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 font-bold text-xs border border-rose-800/40">C</button>
+                <button type="button" onclick="pressKeypad('0')" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-sm border border-slate-700/60 shadow-sm">0</button>
+                <button type="button" onclick="backspaceKeypad()" class="keypad-btn py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700/60">
+                  <i class="fa-solid fa-delete-left"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button 
+              type="submit" 
+              id="btn-login-submit"
+              class="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm tracking-wider shadow-xl shadow-amber-950/60 flex items-center justify-center gap-2 transition-all active:scale-[0.98] border border-amber-300/40"
+            >
+              <i class="fa-solid fa-shield-halved text-base text-slate-900"></i>
+              <span id="btn-login-text">Masuk ke Portal Sistem</span>
+            </button>
+          </form>
+
+          <!-- Quick Test Credentials Reference Pill -->
+          <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800 text-[11px] text-slate-400 space-y-1.5">
+            <div class="font-bold text-slate-300 flex items-center justify-between">
+              <span><i class="fa-solid fa-circle-info text-sky-400"></i> Kredensial Terdaftar:</span>
+              <span class="text-[10px] text-slate-500 font-mono">Ready to Auth</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-300">• Principal:</span>
+              <span class="font-mono text-amber-400/90 font-semibold text-[11px] flex items-center gap-1">
+                <i class="fa-solid fa-lock text-[10px]"></i> PIN Rahasia Terproteksi
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-300">• Prospective Buyer:</span>
+              <button type="button" onclick="selectRole('Prospective Buyer', '1234'); autoFillCurrentPin();" class="font-mono text-sky-400 font-bold hover:underline">
+                PIN: 1234 (Klik isi)
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BUSINESS & FINANCIAL SNAPSHOT TICKER -->
+    <div class="mt-12 pt-8 border-t border-slate-800/80">
+      <div class="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4 text-center sm:text-left flex items-center gap-2">
+        <i class="fa-solid fa-chart-simple text-sky-400"></i>
+        <span>Ringkasan Eksekutif Proyek Snaprint Digital Printing (Dokumen Resmi 2026)</span>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Metric 1 -->
+        <div class="portal-glass-card rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition-colors">
+          <div class="text-[11px] text-slate-400 uppercase font-semibold mb-1">Total Estimasi CAPEX</div>
+          <div class="text-lg sm:text-xl font-black font-mono text-sky-400">Rp 187.000.000</div>
+          <p class="text-[10px] text-slate-500 mt-1">Investasi Mesin Laser, Finishing & Fit-Out</p>
+        </div>
+
+        <!-- Metric 2 -->
+        <div class="portal-glass-card rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition-colors">
+          <div class="text-[11px] text-slate-400 uppercase font-semibold mb-1">Total Modal Awal</div>
+          <div class="text-lg sm:text-xl font-black font-mono text-emerald-400">Rp 294.400.000</div>
+          <p class="text-[10px] text-slate-500 mt-1">CAPEX + Sewa 1 Thn + Runway 3 Bln</p>
+        </div>
+
+        <!-- Metric 3 -->
+        <div class="portal-glass-card rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition-colors">
+          <div class="text-[11px] text-slate-400 uppercase font-semibold mb-1">Titik Impas (BEP)</div>
+          <div class="text-lg sm:text-xl font-black font-mono text-amber-400">148 Lembar/hari</div>
+          <p class="text-[10px] text-slate-500 mt-1">Target Omset Rp 31,5 Jt/bln (A3+)</p>
+        </div>
+
+        <!-- Metric 4 -->
+        <div class="portal-glass-card rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition-colors">
+          <div class="text-[11px] text-slate-400 uppercase font-semibold mb-1">Estimasi Balik Modal</div>
+          <div class="text-lg sm:text-xl font-black font-mono text-cyan-400">12 - 18 Bulan</div>
+          <p class="text-[10px] text-slate-500 mt-1">Payback Period Realistis Lapangan</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-900 bg-slate-950/80 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span>Sistem Portal Pengguna Snaprint Digital Printing &copy; 2026. Seluruh hak cipta dilindungi.</span>
+      </div>
+      <div class="text-[11px] text-slate-400 font-mono">
+        Status: Secure Multi-Role Portal System
+      </div>
+    </div>
+  </footer>
+
+  <!-- PORTAL SCRIPT -->
+  <script>
+    // Registered Users & PINs configuration
+    const USERS_CONFIG = {
+      'principal': {
+        username: 'Principal',
+        pin: '220717',
+        role: 'principal',
+        badge: 'Direksi / Super Admin',
+        color: 'amber',
+        greeting: 'Selamat Datang, Bapak/Ibu Principal! Hak akses penuh manajemen aktif.'
+      },
+      'prospective buyer': {
+        username: 'Prospective Buyer',
+        pin: '1234',
+        role: 'buyer',
+        badge: 'Investor & Mitra Outlet',
+        color: 'sky',
+        greeting: 'Selamat Datang, Calon Investor Snaprint! Mode prospektus investasi aktif.'
+      }
+    };
+
+    let selectedRoleKey = 'principal';
+
+    function selectRole(roleName, defaultPin) {
+      const key = roleName.toLowerCase().trim();
+      if (!USERS_CONFIG[key]) return;
+
+      selectedRoleKey = key;
+      const config = USERS_CONFIG[key];
+
+      // Update input username
+      const inputUsername = document.getElementById('input-username');
+      if (inputUsername) inputUsername.value = config.username;
+
+      // Update badge
+      const activeBadge = document.getElementById('active-badge');
+      if (activeBadge) {
+        activeBadge.innerText = config.username;
+        if (config.color === 'amber') {
+          activeBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        } else {
+          activeBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30';
+        }
+      }
+
+      // Update card visual active borders & radios
+      const cardPrincipal = document.getElementById('role-card-principal');
+      const cardBuyer = document.getElementById('role-card-buyer');
+      const radioPrincipal = document.getElementById('radio-principal');
+      const radioBuyer = document.getElementById('radio-buyer');
+
+      if (key === 'principal') {
+        if (cardPrincipal) {
+          cardPrincipal.classList.add('border-amber-500', 'ring-2', 'ring-amber-500/20', 'bg-slate-900/90');
+          cardPrincipal.classList.remove('border-slate-700/80');
+        }
+        if (cardBuyer) {
+          cardBuyer.classList.remove('border-sky-500', 'ring-2', 'ring-sky-500/20', 'bg-slate-900/90');
+          cardBuyer.classList.add('border-slate-700/80');
+        }
+        if (radioPrincipal) radioPrincipal.innerHTML = '<div class="w-3 h-3 rounded-full bg-amber-400"></div>';
+        if (radioBuyer) radioBuyer.innerHTML = '';
+      } else {
+        if (cardBuyer) {
+          cardBuyer.classList.add('border-sky-500', 'ring-2', 'ring-sky-500/20', 'bg-slate-900/90');
+          cardBuyer.classList.remove('border-slate-700/80');
+        }
+        if (cardPrincipal) {
+          cardPrincipal.classList.remove('border-amber-500', 'ring-2', 'ring-amber-500/20', 'bg-slate-900/90');
+          cardPrincipal.classList.add('border-slate-700/80');
+        }
+        if (radioBuyer) radioBuyer.innerHTML = '<div class="w-3 h-3 rounded-full bg-sky-400"></div>';
+        if (radioPrincipal) radioPrincipal.innerHTML = '';
+      }
+
+      // Clear existing PIN input
+      const pinInput = document.getElementById('input-pin');
+      if (pinInput) {
+        pinInput.value = '';
+        pinInput.focus();
+      }
+
+      // Update quick pin helper label
+      const quickPinBtn = document.getElementById('btn-quick-pin');
+      if (quickPinBtn) {
+        if (key === 'principal') {
+          quickPinBtn.innerHTML = '<span class="text-amber-400/90 text-[11px] font-semibold flex items-center gap-1 cursor-default"><i class="fa-solid fa-lock text-[10px]"></i> PIN Terproteksi Direksi</span>';
+          quickPinBtn.className = 'text-[11px] text-amber-400/90 font-semibold no-underline';
+        } else {
+          quickPinBtn.innerHTML = 'Isi PIN Otomatis (1234)';
+          quickPinBtn.className = 'text-[11px] text-sky-400 hover:text-sky-300 font-semibold underline underline-offset-2';
+        }
+      }
+
+      hideError();
+    }
+
+    function toggleRoleSwitch() {
+      if (selectedRoleKey === 'principal') {
+        selectRole('Prospective Buyer');
+      } else {
+        selectRole('Principal');
+      }
+    }
+
+    function autoFillCurrentPin() {
+      if (selectedRoleKey === 'principal') {
+        showError('PIN Principal bersifat rahasia dan tidak dimunculkan di portal. Silakan ketik PIN resmi Direksi.');
+        return;
+      }
+      const config = USERS_CONFIG[selectedRoleKey];
+      if (config) {
+        const pinInput = document.getElementById('input-pin');
+        if (pinInput) {
+          pinInput.value = config.pin;
+          pinInput.focus();
+        }
+        hideError();
+      }
+    }
+
+    function togglePinVisibility() {
+      const pinInput = document.getElementById('input-pin');
+      const eyeIcon = document.getElementById('eye-icon');
+      if (!pinInput || !eyeIcon) return;
+
+      if (pinInput.type === 'password') {
+        pinInput.type = 'text';
+        eyeIcon.className = 'fa-solid fa-eye-slash text-xs text-sky-400';
+      } else {
+        pinInput.type = 'password';
+        eyeIcon.className = 'fa-solid fa-eye text-xs text-slate-400';
+      }
+    }
+
+    function pressKeypad(num) {
+      const pinInput = document.getElementById('input-pin');
+      if (!pinInput) return;
+      if (pinInput.value.length < 10) {
+        pinInput.value += num;
+      }
+      hideError();
+    }
+
+    function clearKeypad() {
+      const pinInput = document.getElementById('input-pin');
+      if (pinInput) {
+        pinInput.value = '';
+        pinInput.focus();
+      }
+      hideError();
+    }
+
+    function backspaceKeypad() {
+      const pinInput = document.getElementById('input-pin');
+      if (pinInput && pinInput.value.length > 0) {
+        pinInput.value = pinInput.value.slice(0, -1);
+      }
+      hideError();
+    }
+
+    function showError(msg) {
+      const errorDiv = document.getElementById('error-message');
+      const errorText = document.getElementById('error-text');
+      const pinInput = document.getElementById('input-pin');
+
+      if (errorText) errorText.innerText = msg;
+      if (errorDiv) {
+        errorDiv.classList.remove('hidden');
+        errorDiv.classList.remove('animate-shake');
+        void errorDiv.offsetWidth; // trigger reflow
+        errorDiv.classList.add('animate-shake');
+      }
+      if (pinInput) {
+        pinInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-500/40');
+      }
+    }
+
+    function hideError() {
+      const errorDiv = document.getElementById('error-message');
+      const pinInput = document.getElementById('input-pin');
+      if (errorDiv) errorDiv.classList.add('hidden');
+      if (pinInput) {
+        pinInput.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500/40');
+      }
+    }
+
+    function handlePortalLogin(e) {
+      if (e) e.preventDefault();
+
+      const usernameInput = document.getElementById('input-username');
+      const pinInput = document.getElementById('input-pin');
+      const submitBtn = document.getElementById('btn-login-submit');
+      const submitText = document.getElementById('btn-login-text');
+
+      const rawUser = usernameInput ? usernameInput.value.trim().toLowerCase() : selectedRoleKey;
+      const enteredPin = pinInput ? pinInput.value.trim() : '';
+
+      const userConfig = USERS_CONFIG[rawUser];
+
+      if (!userConfig) {
+        showError('Profil pengguna tidak dikenali.');
+        return;
+      }
+
+      if (!enteredPin) {
+        showError('Silakan masukkan PIN otentikasi.');
+        if (pinInput) pinInput.focus();
+        return;
+      }
+
+      if (enteredPin !== userConfig.pin) {
+        showError(`PIN salah untuk username "${userConfig.username}". Silakan coba lagi.`);
+        if (pinInput) {
+          pinInput.select();
+        }
+        return;
+      }
+
+      // Successful Authentication!
+      hideError();
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('from-sky-500', 'to-emerald-500');
+        submitBtn.classList.add('from-emerald-600', 'to-emerald-500');
+      }
+      if (submitText) {
+        submitText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memverifikasi & Membuka Portal...';
+      }
+
+      const sessionData = {
+        username: userConfig.username,
+        role: userConfig.role,
+        badge: userConfig.badge,
+        color: userConfig.color,
+        loginTime: new Date().toISOString()
+      };
+
+      localStorage.setItem('SNAPRINT_CURRENT_USER', JSON.stringify(sessionData));
+
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 500);
+    }
+
+    // Auto-select Principal on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      selectRole('Principal');
+
+      // Check if user is already logged in
+      const existing = localStorage.getItem('SNAPRINT_CURRENT_USER');
+      if (existing) {
+        try {
+          const parsed = JSON.parse(existing);
+          if (parsed && parsed.username) {
+            selectRole(parsed.username);
+          }
+        } catch (e) {}
+      }
+    });
+  </script>
+</body>
+</html>

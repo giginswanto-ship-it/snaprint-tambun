@@ -484,5 +484,36 @@ window.DEFAULT_RAB_DATA = {
     type: "nominal",
     value: 0,
     label: "Potongan Khusus Kemitraan / Negosiasi Vendor"
+  },
+
+  mou: {
+    nomor: "______/MoU/SNAPRINT/PRIN-MITRA/2026",
+    hari: "Rabu",
+    tanggal: "21",
+    bulan: "Oktober",
+    tahun: "2026",
+    kotaDomisili: "Jakarta",
+    pihak1: {
+      instansi: "SNAPRINT DIGITAL PRINTING",
+      penanggungJawab: "Direktur / Manajemen",
+      alamat: "Kantor Pusat Snaprint Digital Printing, Jakarta"
+    },
+    pihak2: {
+      nama: "Calon Mitra / Prospective Buyer",
+      nik: "3171000000000000",
+      alamat: "Sesuai KTP / Tempat Tinggal"
+    },
+    lokasiUsaha: "Ruko Sentra Bisnis Utama (Target Titik Gerai Snaprint)",
+    tahapPembayaran: [
+      { tahap: "Tahap 1", persentase: "50%", keterangan: "Dibayarkan pasca pelunasan sewa lokasi saat penandatanganan dan dimulainya pekerjaan setup." },
+      { tahap: "Tahap 2", persentase: "40%", keterangan: "Dibayarkan saat progres renovasi, penataan interior/eksterior, dan pengadaan sarana mencapai tahap pertengahan." },
+      { tahap: "Tahap 3", persentase: "10%", keterangan: "Pelunasan akhir yang dibayarkan ketika seluruh toko selesai disetup dan siap beroperasi penuh." }
+    ],
+    initialFeeNominal: 100000000,
+    initialFeeTerbilang: "seratus juta rupiah",
+    kebijakanDiskon: "Tidak Ada",
+    managementFeePercent: 5,
+    managementFeeBulanMulai: 4,
+    managementFeeBatasTgl: 5
   }
 };

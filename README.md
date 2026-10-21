@@ -22,6 +22,24 @@ Sistem ini mentransformasikan dokumen perencanaan statis (RAB PDF No. Dokumen: `
 
 ---
 
+### 🔐 Portal Akses Pengguna & Kredensial Multi-Role
+
+Sistem dilengkapi Halaman Depan Portal Pengguna interaktif (`portal.html` dan gerbang login `index.html`) dengan otentikasi PIN multi-role:
+
+| Profil Pengguna | Username | PIN Akses | Hak Akses & Peran |
+| :--- | :--- | :---: | :--- |
+| **👑 Principal** | `Principal` | **`220717`** | **Direksi & Super Administrator (Full Control)**:<br>• Edit & tambah item anggaran CAPEX (21 item)<br>• Sunting harga satuan, volume, dan diskon vendor<br>• Inspektur Live Database (MariaDB 10.4 & JSON)<br>• Otorisasi dokumen cetak & approval |
+| **💼 Prospective Buyer** | `Prospective Buyer` | **`1234`** | **Investor & Calon Mitra Kemitraan (Investor Mode)**:<br>• Eksplorasi prospektus investasi & kelayakan usaha<br>• Rincian modal awal Rp 294,4 Jt & 3 skenario runway<br>• Simulator Finansial Interaktif BEP & Cashflow<br>• Preview proposal penawaran resmi PDF (Read-Only CAPEX) |
+
+Fitur pada Halaman Depan Portal:
+- Seleksi profil instan dengan kartu interaktif.
+- Input PIN dengan keypad numerik layar sentuh (*touch keypad*) & keyboard.
+- Fitur *Show/Hide* PIN dan tombol bantuan *Isi PIN Otomatis*.
+- Ringkasan KPI Finansial Proyek (CAPEX Rp 187 Jt, Modal Awal Rp 294,4 Jt, BEP 148 lbr/hr, Balik Modal 12-18 Bln).
+- Pengalih profil (*user switcher*) & tombol Logout langsung di header navigasi.
+
+---
+
 ### 🚀 Cara Menjalankan Aplikasi
 
 Aplikasi dirancang **Zero-Dependency** dan sangat fleksibel:
